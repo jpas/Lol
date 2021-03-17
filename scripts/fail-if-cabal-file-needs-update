@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+package="$1"
+cabal_file="$package/$package.cabal"
+
+if [[ -z "$package" ]]; then
+  echo "usage: $0 package" >&2
+  exit 1
+fi
+
+# Even though this says it is a dry-run stack will generate a new cabal file
+# if one does not exist.
+rm -f "$cabal_file"
+stack build --dry-run "$package" &> /dev/null
+
+if ! git diff --quiet HEAD "$cabal_file"; then
+  echo "regenerating $cabal_file resulted in a change, please commit the changes to it." >&2
+  exit 1
+fi
